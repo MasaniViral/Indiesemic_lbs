@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEGA LED-BTN DEMO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .company-logo {
+            max-width: 200px;
+            max-height: 80px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .company-logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* Fallback text logo if image not available */
+        .text-logo {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            min-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .status.connected {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .controls {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .controls.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .led-container {
+            margin: 30px auto;
+            position: relative;
+        }
+
+        .led {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #333;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .led.on {
+            background: #ffeb3b;
+            box-shadow: 0 0 50px #ffeb3b, 
+                        0 0 100px #ffeb3b,
+                        inset 0 2px 10px rgba(255,255,255,0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .led-label {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
+            margin: 10px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(31, 38, 135, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .led-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-width: 200px;
+        }
+
+        .led-button.active {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .disconnect-btn {
+            background: linear-gradient(135deg, #f85032 0%, #e73827 100%);
+        }
+
+        .device-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                min-width: auto;
+                width: 100%;
+                max-width: 400px;
+                padding: 30px 20px;
+            }
+            
+            .company-logo {
+                max-width: 150px;
+                max-height: 60px;
+            }
+            
+            .text-logo {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <!-- Replace the src with your actual logo file path -->
+        <img src="data:image/png;base64,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" alt="Company Logo" class="company-logo" 
+             onerror="this.style.display='none'; document.getElementById('textLogo').style.display='block';">
+        
+        <!-- Fallback text logo (hidden by default, shown if image fails to load) -->
+        <div id="textLogo" class="text-logo" style="display: none;">
+            INDIESEMIC
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🔵 VEGA LED-BTN DEMO</h1>
+        
+        <div id="status" class="status">
+            <span id="statusText">Ready to connect</span>
+        </div>
+
+        <div id="scanControls">
+            <button id="scanBtn" onclick="scanAndConnect()">Scan & Connect Device</button>
+        </div>
+
+        <div id="controls" class="controls">
+            <div class="led-container">
+                <div id="led" class="led"></div>
+                <div class="led-label">Vega_EVK LED Status</div>
+            </div>
+
+            <button id="ledBtn" class="led-button" onclick="toggleLED()">
+                Turn LED ON
+            </button>
+
+            <div class="device-info">
+                <strong>Device:</strong> <span id="deviceName">-</span>
+            </div>
+
+            <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
+        </div>
+    </div>
+
+    <script>
+        // Nordic LED Button Service UUIDs
+        const LED_BUTTON_SERVICE_UUID = '00001523-1212-efde-1523-785feabcd123';
+        const LED_CHARACTERISTIC_UUID = '00001525-1212-efde-1523-785feabcd123';
+        const BUTTON_CHARACTERISTIC_UUID = '00001524-1212-efde-1523-785feabcd123';
+
+        let device = null;
+        let server = null;
+        let service = null;
+        let ledCharacteristic = null;
+        let buttonCharacteristic = null;
+        let ledState = false;
+
+        function updateStatus(message, type = 'normal') {
+            const statusEl = document.getElementById('status');
+            const statusTextEl = document.getElementById('statusText');
+            
+            statusTextEl.textContent = message;
+            statusEl.className = 'status';
+            
+            if (type === 'connected') {
+                statusEl.classList.add('connected');
+            } else if (type === 'error') {
+                statusEl.classList.add('error');
+            }
+        }
+
+        async function scanAndConnect() {
+            try {
+                updateStatus('Scanning for devices...');
+                
+                // Request device with LED Button Service
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { services: [LED_BUTTON_SERVICE_UUID] }
+                    ],
+                    optionalServices: [LED_BUTTON_SERVICE_UUID]
+                });
+
+                updateStatus('Connecting to ' + device.name + '...');
+                
+                // Connect to GATT Server
+                server = await device.gatt.connect();
+                
+                // Get LED Button Service
+                try {
+                    service = await server.getPrimaryService(LED_BUTTON_SERVICE_UUID);
+                } catch (error) {
+                    throw new Error('Device does not support LED Button Service');
+                }
+
+                // Get characteristics
+                ledCharacteristic = await service.getCharacteristic(LED_CHARACTERISTIC_UUID);
+                buttonCharacteristic = await service.getCharacteristic(BUTTON_CHARACTERISTIC_UUID);
+
+                // Set up button notification
+                await buttonCharacteristic.startNotifications();
+                buttonCharacteristic.addEventListener('characteristicvaluechanged', handleButtonChange);
+
+                // Update UI
+                document.getElementById('deviceName').textContent = device.name || 'Unknown Device';
+                document.getElementById('scanControls').style.display = 'none';
+                document.getElementById('controls').classList.add('active');
+                updateStatus('Connected to ' + device.name, 'connected');
+
+                // Set up disconnect handler
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                
+                if (error.message.includes('LED Button Service')) {
+                    updateStatus('Error: Unsupported device - LED Button Service not found', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    updateStatus('No device selected', 'normal');
+                } else {
+                    updateStatus('Error: ' + error.message, 'error');
+                }
+                
+                if (device && device.gatt.connected) {
+                    await device.gatt.disconnect();
+                }
+            }
+        }
+
+        function handleButtonChange(event) {
+            const value = event.target.value;
+            const buttonPressed = value.getUint8(0) === 1;
+            
+            // Toggle on-screen LED based on physical button press
+            const ledEl = document.getElementById('led');
+            if (buttonPressed) {
+                ledEl.classList.toggle('on');
+            }
+        }
+
+        async function toggleLED() {
+            if (!ledCharacteristic) {
+                updateStatus('Not connected to device', 'error');
+                return;
+            }
+
+            try {
+                ledState = !ledState;
+                
+                // Send command to device (1 = ON, 0 = OFF)
+                const value = new Uint8Array([ledState ? 1 : 0]);
+                await ledCharacteristic.writeValue(value);
+
+                // Update button text
+                const btn = document.getElementById('ledBtn');
+                btn.textContent = ledState ? 'Turn LED OFF' : 'Turn LED ON';
+                btn.classList.toggle('active', ledState);
+
+            } catch (error) {
+                console.error('Error toggling LED:', error);
+                updateStatus('Error: Failed to control LED', 'error');
+                setTimeout(() => {
+                    updateStatus('Connected to ' + (device?.name || 'Device'), 'connected');
+                }, 3000);
+            }
+        }
+
+        async function disconnect() {
+            if (device && device.gatt.connected) {
+                await device.gatt.disconnect();
+            }
+        }
+
+        function onDisconnected() {
+            updateStatus('Disconnected from device', 'normal');
+            document.getElementById('scanControls').style.display = 'block';
+            document.getElementById('controls').classList.remove('active');
+            document.getElementById('led').classList.remove('on');
+            document.getElementById('ledBtn').textContent = 'Turn LED ON';
+            document.getElementById('ledBtn').classList.remove('active');
+            ledState = false;
+            device = null;
+            server = null;
+            service = null;
+            ledCharacteristic = null;
+            buttonCharacteristic = null;
+        }
+
+        // Check for Web Bluetooth API support
+        if (!navigator.bluetooth) {
+            updateStatus('Error: Web Bluetooth API not supported in this browser', 'error');
+            document.getElementById('scanBtn').disabled = true;
+        }
+    </script>
+</body>
+</html>
